@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Searchbar from './Searchbar';
 import ImageGallery from "./ImageGallery"
 import Button from './Button';
-import SearchApi from "./SearchApi"
+import SearchApi from "../searchApi"
 import Loader from './Loader/Loader';
 import Modal from './Modal';
 import css from "./App.module.css";
