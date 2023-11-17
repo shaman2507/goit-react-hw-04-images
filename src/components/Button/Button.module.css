@@ -23,3 +23,9 @@
 .Button:focus {
   background-color: #303f9f;
 }
+
+.WrapperBtn {
+  margin-top: 36px;
+  display: flex;
+  justify-content: center;
+}
