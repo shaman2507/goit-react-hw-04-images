@@ -14,18 +14,22 @@ function App(){
   const [status, setStatus] = useState('deny');
   const [showModal, setShowModal] = useState(false);
   const [showLoadMore, setShowLoadMore] = useState(false);
+  const [totalPages, setTotalPages] = useState(0);
   const [largeImage, setLargeImage] = useState('');
+  const [perPage] = useState(12);
+  const [loadButton, setLoadButton] = useState(false);
 
   useEffect(() => {
       if (status === 'allow') {
         setStatus('loading');
-        SearchApi(value, page)
+        SearchApi(value, page, perPage)
           .then(response => response.json())
           .then(ar =>
             setGallery(
               gallery => [...gallery, ...ar.hits],
               setStatus('deny'),
-              setShowLoadMore(true),
+              setTotalPages(Math.ceil(value.totalHits / perPage)),
+              setLoadButton(value.length >= 12 ? true : false),
               
               alertEmptyArray(ar.hits.length)
             )
@@ -61,9 +65,12 @@ function App(){
     setStatus('allow');
   };
 
-  const onMore = () => {
-    setPage(prevPage => prevPage + 1 )
-    setStatus('allow');
+  const LoadMore = () => {
+    if (page < totalPages) {
+      setPage((prevPage) => prevPage + 1);
+    } else {
+      setLoadButton(false);
+    }
   };
 
     return (
@@ -73,7 +80,7 @@ function App(){
           <ImageGallery gallery={gallery} openModal={openModal} />
           {showLoadMore && (
             <div className={css.buttonContainer}>
-              <Button onMore={onMore} />
+              <Button LoadMore={LoadMore} />
             </div>
           )}
           {status === 'loading' && (
