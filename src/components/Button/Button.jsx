@@ -1,13 +1,16 @@
-import PropTypes from 'prop-types';
-import css from './Button.module.css';
+import propTypes from 'prop-types';
+import loadBtnCSS from './Button.module.css';
 
-function LoadMore({ loadMore }) {
-
+export const Button = ({ changePage }) => {
   return (
-    <button type="button" className={css.Button} onClick={loadMore}>
-      Load More
-    </button>
+    <>
+      <button className={loadBtnCSS.btn} type="button" onClick={changePage}>
+        Load more
+      </button>
+    </>
   );
-}
+};
 
-export default LoadMore;
+Button.propTypes = {
+  changePage: propTypes.func.isRequired,
+};

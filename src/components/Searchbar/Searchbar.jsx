@@ -1,46 +1,50 @@
+import { IconButton } from 'components/IconButton/IconButton';
 import { useState } from 'react';
-import PropTypes from 'prop-types';
-import css from "./Searchbar.module.css";
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import propTypes from 'prop-types';
 
-function Searchbar({ onChange }) {
-  const [value, setValue] = useState('');
+import searchBarCSS from './Searchbar.module.css';
+import { ReactComponent as SearchIcon } from '../../icons/icons8-search.svg';
 
-  const onSubmit = e => {
-    e.preventDefault();
-    if (value === '') {
-      return alert('Input field is empty!');
-    }
-    onChange(value);
-    setValue('');
+export const Searchbar = ({ onSubmit }) => {
+  const [imgName, setImgName] = useState('');
+
+  const onChangeImgName = e => {
+    setImgName(e.currentTarget.value.toLowerCase());
   };
 
-  const handleChange = e => {
-    setValue( e.currentTarget.value );
+  const onSubmitImg = e => {
+    e.preventDefault();
+    if (imgName.trim() === '') {
+      toast.error('Please enter valid search data');
+      return;
+    }
+    onSubmit(imgName);
+    setImgName('');
   };
 
   return (
-    <header className={css.Searchbar}>
-      <form className={css.SearchForm} onSubmit={onSubmit}>
-        <button type="submit" className={css.SearchFormButton}>
-          <span className={css.SearchFormButtonLabel}>Search</span>
-        </button>
-
+    <div className={searchBarCSS.form_wrapper}>
+      <form onSubmit={onSubmitImg} className={searchBarCSS.formSearch}>
         <input
-          onChange={handleChange}
-          className={css.SearchFormInput}
+          className={searchBarCSS.inputSearch}
           type="text"
-          value={value}
           autoComplete="off"
           autoFocus
           placeholder="Search images and photos"
+          value={imgName}
+          onChange={onChangeImgName}
         />
-      </form>
-    </header>
-  );
-}
 
-export default Searchbar;
+        <IconButton type={'submit'}>
+          <SearchIcon width="36" height="36" />
+        </IconButton>
+      </form>
+    </div>
+  );
+};
 
 Searchbar.propTypes = {
-  onChange: PropTypes.func.isRequired,
+  onSubmit: propTypes.func.isRequired,
 };

@@ -1,14 +1,13 @@
-import { RotatingLines } from 'react-loader-spinner';
+import DotLoader from 'react-spinners/DotLoader';
 
-function Loader() {
-    return (
-      <RotatingLines
-        strokeColor="grey"
-        strokeWidth="5"
-        animationDuration="0.75"
-        width="96"
-        visible={true}/>
-    );
-}
+import LoaderCSS from './Loader.module.css';
 
-export default Loader;
+export const Loader = () => {
+  return (
+    <div className={LoaderCSS.loader_wraper}>
+      <div className={LoaderCSS.container}>
+        <DotLoader color="#ceddda" size={300} />
+      </div>
+    </div>
+  );
+};

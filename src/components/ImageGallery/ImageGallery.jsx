@@ -1,18 +1,81 @@
-import PropTypes from 'prop-types';
-import ImageGalleryItem from './ImageGalleryItem/ImageGalleryItem';
-import css from './ImageGallery.module.css';
+import { useState } from 'react';
+import propTypes from 'prop-types';
+import imageGallaryCSS from './ImageGallery.module.css';
+import { ImageGallaryItem } from 'components/ImageGalleryItem/ImageGalleryItem';
+import { Modal } from '../Modal/Modal';
+import { AiOutlineClose } from 'react-icons/ai';
+import { Button } from 'components/Button/Button';
 
-function ImageGallery({ gallery, openModal }) {
-  return (
-    <ul className={css.gallery}>
-      <ImageGalleryItem gallery={gallery} openModal={openModal} />
-    </ul>
-  );
-}
+export const ImageGallary = ({
+  images,
+  status,
+  error,
+  hasMorePages,
+  changePage,
+}) => {
+  const [showModal, setShowModal] = useState(false);
+  const [largeImage, setLargeImage] = useState(null);
+  const [description, setDescription] = useState(null);
 
-export default ImageGallery;
+  const toggleModal = () => {
+    setShowModal(prevState => !prevState);
+  };
 
-ImageGallery.propTypes = {
-  gallery: PropTypes.arrayOf(PropTypes.object),
-  openModal:PropTypes.func.isRequired,
+  const getLargeImgData = (largeImage, description) => {
+    setLargeImage(largeImage);
+    setDescription(description);
+  };
+
+  const hasMoreImg = hasMorePages();
+
+  if (status === 'idle') {
+    return;
+  }
+
+  if (status === 'rejected') {
+    return <div className={imageGallaryCSS.error}>{error}</div>;
+  }
+  if (status === 'resolved') {
+    return (
+      <>
+        <ul className={imageGallaryCSS.gallary_list}>
+          {images.map(({ id, webformatURL, largeImageURL, tags }) => (
+            <ImageGallaryItem
+              key={id}
+              originateImg={webformatURL}
+              largeImage={largeImageURL}
+              descrip={tags}
+              onImgClick={toggleModal}
+              getLargeImgData={getLargeImgData}
+            />
+          ))}
+        </ul>
+        {hasMoreImg && <Button changePage={changePage} />};
+        {showModal && (
+          <Modal toggleModal={toggleModal}>
+            <img
+              className={imageGallaryCSS.large_img}
+              src={largeImage}
+              alt={description}
+            />
+            <button
+              className={imageGallaryCSS.close_btn}
+              type="button"
+              onClick={toggleModal}
+            >
+              <AiOutlineClose className={imageGallaryCSS.close_icon} />
+            </button>
+          </Modal>
+        )}
+      </>
+    );
+  }
+};
+
+ImageGallary.propTypes = {
+  images: propTypes.arrayOf(propTypes.shape).isRequired,
+  status: propTypes.string.isRequired,
+  error: propTypes.string.isRequired,
+  hasMorePages: propTypes.func.isRequired,
+  changePage: propTypes.func.isRequired,
 };

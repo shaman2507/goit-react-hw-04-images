@@ -6,17 +6,17 @@
 }
 
 .img{
-    object-fit: cover;
+  object-fit: cover;
 }
 
 .loader{
-display:flex;
-align-items: center;
-justify-content: center;
+  display:flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .buttonContainer{
-      display: flex;
-      justify-content: center;
-      align-items: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }

@@ -1,106 +1,113 @@
-import { useState, useEffect } from 'react';
-import Searchbar from './Searchbar';
-import ImageGallery from "./ImageGallery"
-import Button from './Button';
-import SearchApi from "../searchApi"
-import Loader from './Loader/Loader';
-import Modal from './Modal';
-import css from "./App.module.css";
+import { useEffect, useState } from 'react';
+import { Header } from './Header/Header';
+import { Searchbar } from './Searchbar/Searchbar';
+import { ImageGallary } from './ImageGallery/ImageGallery';
+import { ToastContainer } from 'react-toastify';
+import { axiosAPI } from '../searchApi/pixabay_api';
+import { Loader } from './Loader/Loader';
 
-function App(){
-  const [value, setValue] = useState(null);
+
+export const App = () => {
+  const [searchName, setSearchName] = useState(null);
+  const [images, setImages] = useState([]);
   const [page, setPage] = useState(1);
-  const [gallery, setGallery] = useState([]);
-  const [status, setStatus] = useState('deny');
-  const [showModal, setShowModal] = useState(false);
-  const [showLoadMore, setShowLoadMore] = useState(false);
   const [totalPages, setTotalPages] = useState(0);
-  const [largeImage, setLargeImage] = useState('');
-  const [perPage] = useState(12);
-  const [loadButton, setLoadButton] = useState(false);
+  const [error, setError] = useState('');
+  const [status, setStatus] = useState('idle');
+  const [isLoading, setIsLoading] = useState(false);
+  const per_page = 16;
 
   useEffect(() => {
-      if (status === 'allow') {
-        setStatus('loading');
-        SearchApi(value, page, perPage)
-          .then(response => response.json())
-          .then(ar =>
-            setGallery(
-              gallery => [...gallery, ...ar.hits],
-              setStatus('deny'),
-              setTotalPages(Math.ceil(value.totalHits / perPage)),
-              setLoadButton(value.length >= 12 ? true : false),
-              
-              alertEmptyArray(ar.hits.length)
-            )
-          );
+    const getImages = async () => {
+      try {
+        setIsLoading(true);
+        const { data } = await axiosAPI(searchName, per_page);
+        if (!data.total) {
+          throw new Error('No matches found. The data may not be valid');
+        }
+        setImages([...data.hits]);
+        setTotalPages(data.totalHits);
+        setIsLoading(false);
+        setStatus('resolved');
+      } catch (error) {
+        setError(error.message);
+        setIsLoading(false);
+        setStatus('rejected');
       }
-  }, [page, status, value])
-  
+    };
+    if (searchName) {
+      getImages(searchName);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [per_page, searchName]);
 
-  const alertEmptyArray = value => {
-    if (!value) {
-      setShowLoadMore(false)
-      alert('Ooops there is no images, try another search!');
+  useEffect(() => {
+    if (page === 1) {
       return;
     }
-  };
-
-  const openModal = img => {
-    setShowModal(true);
-    setLargeImage(img);
-  };
-
-  const closeModal = () => {
-    setShowModal(false);
-  };
-
-  const onSubmit = name => {
-    if (name === value) {
-      return alert('Try another input value!');
+    const addImages = async () => {
+      try {
+        setIsLoading(true);
+        const { data } = await axiosAPI(searchName, per_page, page);
+        if (!data.total) {
+          throw new Error('No matches found. The data may not be valid');
+        }
+        setImages(prevImg => [...prevImg, ...data.hits]);
+        setIsLoading(false);
+        setStatus('resolved');
+      } catch (error) {
+        setError(error.message);
+        setIsLoading(false);
+        setStatus('rejected');
+      }
+    };
+    if (searchName) {
+      addImages(searchName);
     }
-    setValue(name);
-    setPage(1);
-    setGallery([]);
-    setStatus('allow');
-  };
+  }, [page, per_page, searchName]);
 
-  const LoadMore = () => {
-    if (page < totalPages) {
-      setPage((prevPage) => prevPage + 1);
-    } else {
-      setLoadButton(false);
+  const onSearchFormImg = newSearchName => {
+    if (page === 1) {
+      setSearchName(newSearchName);
+    } else if (searchName.toLowerCase() !== newSearchName.toLowerCase()) {
+      setSearchName(newSearchName);
+      setPage(1);
     }
   };
+  const hasMorePages = () => {
+    const pages = Math.ceil(totalPages / per_page);
+    return page < pages;
+  };
 
-    return (
-      <section>
-        <div className={css.App}>
-          <Searchbar onChange={onSubmit} />
-          <ImageGallery gallery={gallery} openModal={openModal} />
-          {showLoadMore && (
-            <div className={css.buttonContainer}>
-              <Button LoadMore={LoadMore} />
-            </div>
-          )}
-          {status === 'loading' && (
-            <div className={css.loader}>
-              <Loader />
-            </div>
-          )}
-          {showModal && (
-            <Modal onClose={closeModal}>
-              <img
-                className={css.img}
-                src={largeImage}
-                width="900"
-                alt=""
-              />
-            </Modal>
-          )}
-        </div>
-      </section>
-    );
-  }
+  const addImages = () => {
+    setPage(page + 1);
+  };
 
-export default App;
+  return (
+    <div>
+      <Header>
+        <Searchbar onSubmit={onSearchFormImg} />
+      </Header>
+      <ImageGallary
+        images={images}
+        status={status}
+        error={error}
+        hasMorePages={hasMorePages}
+        changePage={addImages}
+      />
+      {isLoading && <Loader />}
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
+    </div>
+  );
+};
